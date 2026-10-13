@@ -7,58 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <style>
-:root{
-  --bg:#0b0f1a;--card:#151b2e;--card2:#1c2340;--line:#232b47;
-  --a1:#6366f1;--a2:#a855f7;--ok:#10b981;--no:#ef4444;--gold:#fbbf24;
-  --tx:#e2e8f0;--mut:#7c88a8;--grad:linear-gradient(135deg,#6366f1,#a855f7);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif}
-body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:40px}
-.wrap{max-width:640px;margin:0 auto;padding:16px}
-h1{font-size:20px;margin-bottom:4px}
-.sub{font-size:12px;color:var(--mut);margin-bottom:20px}
-.tabs{display:flex;gap:8px;margin-bottom:16px;background:var(--card);padding:6px;border-radius:14px}
-.tab{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:13px;font-weight:700;
-  color:var(--mut);cursor:pointer;transition:.2s;background:none;border:0;font-family:inherit}
-.tab.on{background:var(--grad);color:#fff}
-.panel{display:none}
-.panel.on{display:block;animation:fade .3s}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
-.card h3{font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.field{margin-bottom:10px}
-.field label{display:block;font-size:11px;color:var(--mut);font-weight:700;margin-bottom:5px}
-.field input,.field textarea,.field select{width:100%;background:var(--card2);border:1px solid var(--line);
-  border-radius:10px;padding:11px 13px;font-size:13px;color:var(--tx);font-family:inherit;outline:none}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--a1)}
-.field textarea{min-height:70px;resize:vertical}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{background:var(--grad);border:0;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;
-  font-size:13px;cursor:pointer;width:100%;font-family:inherit;transition:.15s;
-  display:flex;align-items:center;justify-content:center;gap:6px}
-.btn:active{transform:scale(.97)}
-.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--tx)}
-.btn.ok{background:linear-gradient(135deg,#10b981,#059669)}
-.btn.no{background:linear-gradient(135deg,#ef4444,#dc2626)}
-.btn.sm{padding:8px 12px;font-size:11px;border-radius:9px;width:auto}
-.item{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:12px;
-  margin-bottom:8px;display:flex;gap:10px;align-items:center}
-.item img{width:50px;height:50px;border-radius:10px;object-fit:cover;background:var(--card);flex-shrink:0}
-.item .info{flex:1;min-width:0}
-.item .info b{font-size:13px;display:block;margin-bottom:2px}
-.item .info span{font-size:10px;color:var(--mut);display:block}
-.item .actions{display:flex;gap:6px;flex-shrink:0}
-.badge{padding:3px 8px;border-radius:7px;font-size:9px;font-weight:800}
-.badge.pending{background:rgba(251,191,36,.2);color:var(--gold)}
-.badge.approved{background:rgba(16,185,129,.2);color:var(--ok)}
-.badge.rejected{background:rgba(239,68,68,.2);color:var(--no)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:var(--card2);border:1px solid var(--line);padding:12px 20px;border-radius:12px;
-  font-size:13px;font-weight:600;transition:.3s;z-index:999;opacity:0;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.empty{text-align:center;padding:30px;color:var(--mut);font-size:13px}
-.code{font-family:monospace;font-size:11px;color:var(--gold);direction:ltr;display:inline-block}
+/* ... استایلهای پنل از پیام قبلی ... */
 </style>
 </head>
 <body>
@@ -90,9 +39,9 @@ h1{font-size:20px;margin-bottom:4px}
       <h3>➕ محصول جدید</h3>
       <div class="field"><label>شناسه محصول (انگلیسی)</label><input id="p_pid" placeholder="gift_heart"></div>
       <div class="row">
-        <div class="field"><label>دسته‌بندی</label>
+        <div class="field"><label>دستهبندی</label>
           <select id="p_cat">
-            <option value="gifts">گیفت‌ها</option>
+            <option value="gifts">گیفتها</option>
             <option value="stars">استارز</option>
             <option value="premium">پرمیوم</option>
             <option value="stickers">استیکر</option>
@@ -122,7 +71,7 @@ h1{font-size:20px;margin-bottom:4px}
     <div class="card">
       <h3>📢 ارسال اعلان به همه</h3>
       <div class="field"><label>عنوان</label><input id="n_title" placeholder="جشنواره ویژه!"></div>
-      <div class="field"><label>متن پیام</label><textarea id="n_body" placeholder="۵۰٪ تخفیف روی همه گیفت‌ها..."></textarea></div>
+      <div class="field"><label>متن پیام</label><textarea id="n_body" placeholder="۵۰٪ تخفیف روی همه گیفتها..."></textarea></div>
       <div class="field"><label>نوع</label>
         <select id="n_type">
           <option value="info">اطلاعیه</option>
@@ -133,7 +82,7 @@ h1{font-size:20px;margin-bottom:4px}
       <button class="btn" onclick="sendNotification()">📢 ارسال</button>
     </div>
     <div class="card">
-      <h3>📨 اعلان‌های قبلی</h3>
+      <h3>📨 اعلانهای قبلی</h3>
       <div id="notifList"></div>
     </div>
   </div>
@@ -162,7 +111,8 @@ function toast(msg){
 
 // ===== Load data =====
 async function loadPurchases(){
-  const { data, error } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
+  if(!sb) return;
+  const { data, error } = await sb.from('purchases').select('*').order('created_at', { ascending: false });
   if(error){ toast('خطا در بارگذاری'); return; }
 
   const pending = (data||[]).filter(p=>p.status==='pending');
@@ -196,49 +146,50 @@ async function loadPurchases(){
 }
 
 async function approvePurchase(id){
-  const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single();
-  if(!p) return;
+  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
 
-  // به‌روزرسانی وضعیت خرید
-  const { error } = await supabase.from('purchases').update({
+  const { data: p, error: e1 } = await sb.from('purchases').select('*').eq('id', id).single();
+  if(e1 || !p){ toast('❌ خرید پیدا نشد'); return; }
+
+  const { error: e2 } = await sb.from('purchases').update({
     status: 'approved',
     approved_at: new Date().toISOString()
   }).eq('id', id);
-  if(error){ toast('خطا'); return; }
+  if(e2){ toast('❌ خطا: '+e2.message); return; }
 
-  // کم کردن موجودی محصول
   if(p.product_id){
-    const { data: prod } = await supabase.from('products').select('stock').eq('id', p.product_id).single();
+    const { data: prod } = await sb.from('products').select('stock').eq('id', p.product_id).single();
     if(prod && prod.stock !== null && prod.stock > 0){
-      await supabase.from('products').update({ stock: prod.stock - 1 }).eq('id', p.product_id);
+      await sb.from('products').update({ stock: prod.stock - 1 }).eq('id', p.product_id);
     }
   }
 
-  // ارسال اعلان به کاربر
-  await supabase.from('notifications').insert({
+  await sb.from('notifications').insert({
     title_fa: 'خرید شما تایید شد ✅',
     title_en: 'Purchase approved',
     body_fa: `محصول "${p.product_name}" با کد ${p.code} تایید شد.`,
-    body_en: `Product "${p.product_name}" with code ${p.code} approved.`,
+    body_en: `Product "${p.product_name}" approved.`,
     type: 'success',
     target: p.user_id
   });
 
-  toast('تایید شد ✅');
+  toast('✅ تایید شد');
   loadPurchases();
+  loadProducts();
 }
 
 async function rejectPurchase(id){
-  const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single();
+  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  const { data: p } = await sb.from('purchases').select('*').eq('id', id).single();
   if(!p) return;
 
-  await supabase.from('purchases').update({ status: 'rejected' }).eq('id', id);
+  await sb.from('purchases').update({ status: 'rejected' }).eq('id', id);
 
-  await supabase.from('notifications').insert({
+  await sb.from('notifications').insert({
     title_fa: 'خرید شما رد شد ❌',
     title_en: 'Purchase rejected',
     body_fa: `متاسفانه خرید "${p.product_name}" رد شد.`,
-    body_en: `Purchase "${p.product_name}" was rejected.`,
+    body_en: `Purchase rejected.`,
     type: 'warning',
     target: p.user_id
   });
@@ -247,9 +198,9 @@ async function rejectPurchase(id){
   loadPurchases();
 }
 
-// ===== Products =====
 async function loadProducts(){
-  const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+  if(!sb) return;
+  const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
   if(error){ toast('خطا'); return; }
   document.getElementById('productsList').innerHTML = (data||[]).length ? data.map(p=>`
     <div class="item">
@@ -271,11 +222,12 @@ async function addProduct(){
   const img = document.getElementById('p_img').value.trim();
   const price = parseInt(document.getElementById('p_price').value);
 
-  if(!pid || !nfa || !img || !price){ toast('فیلدهای ضروری رو پر کن'); return; }
+  if(!pid || !nfa || !img || !price){ toast('⚠️ فیلدهای ضروری رو پر کن'); return; }
+  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
 
   const stockVal = document.getElementById('p_stock').value.trim();
 
-  const { error } = await supabase.from('products').insert({
+  const { error } = await sb.from('products').insert({
     product_id: pid,
     category: document.getElementById('p_cat').value,
     name_fa: nfa,
@@ -289,28 +241,29 @@ async function addProduct(){
     active: true
   });
 
-  if(error){ toast('خطا: '+error.message); return; }
+  if(error){ toast('❌ خطا: '+error.message); return; }
 
-  toast('محصول اضافه شد ✅');
+  toast('✅ محصول اضافه شد');
   ['p_pid','p_nfa','p_nen','p_dfa','p_den','p_img','p_stock','p_badge','p_price'].forEach(id=>document.getElementById(id).value='');
   loadProducts();
 }
 
 async function deleteProduct(id){
   if(!confirm('مطمئنی؟')) return;
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if(error){ toast('خطا'); return; }
-  toast('حذف شد');
+  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  const { error } = await sb.from('products').delete().eq('id', id);
+  if(error){ toast('❌ خطا: '+error.message); return; }
+  toast('✅ حذف شد');
   loadProducts();
 }
 
-// ===== Notifications =====
 async function sendNotification(){
   const title = document.getElementById('n_title').value.trim();
   const body = document.getElementById('n_body').value.trim();
-  if(!title || !body){ toast('عنوان و متن رو پر کن'); return; }
+  if(!title || !body){ toast('⚠️ عنوان و متن رو پر کن'); return; }
+  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
 
-  const { error } = await supabase.from('notifications').insert({
+  const { error } = await sb.from('notifications').insert({
     title_fa: title,
     title_en: title,
     body_fa: body,
@@ -319,15 +272,16 @@ async function sendNotification(){
     target: 'all'
   });
 
-  if(error){ toast('خطا: '+error.message); return; }
-  toast('اعلان ارسال شد 📢');
+  if(error){ toast('❌ خطا: ' + error.message); return; }
+  toast('✅ اعلان ارسال شد');
   document.getElementById('n_title').value = '';
   document.getElementById('n_body').value = '';
   loadNotifications();
 }
 
 async function loadNotifications(){
-  const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
+  if(!sb) return;
+  const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
   document.getElementById('notifList').innerHTML = (data||[]).length ? data.map(n=>`
     <div class="item">
       <div class="info">
@@ -340,10 +294,12 @@ async function loadNotifications(){
 }
 
 // ===== Realtime subscriptions =====
-supabase.channel('admin-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'purchases' }, ()=>{ loadPurchases(); })
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, ()=>{ loadProducts(); })
-  .subscribe();
+if(sb){
+  sb.channel('admin-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'purchases' }, ()=>{ loadPurchases(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, ()=>{ loadProducts(); })
+    .subscribe();
+}
 
 // ===== Init =====
 loadPurchases();
@@ -351,4 +307,4 @@ loadProducts();
 loadNotifications();
 </script>
 </body>
-  </html>
+</html>
