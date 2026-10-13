@@ -6,92 +6,964 @@
 <title>پنل مدیریت GameHub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ... استایلهای پنل از پیام قبلی ... */
+:root{
+  --bg:#09090b;
+  --bg-2:#111113;
+  --card:#18181b;
+  --card-2:#1f1f23;
+  --card-3:#26262b;
+  --border:#27272a;
+  --border-2:#3f3f46;
+  --text:#fafafa;
+  --text-2:#a1a1aa;
+  --text-3:#71717a;
+  --accent:#8b5cf6;
+  --accent-2:#a78bfa;
+  --accent-glow:rgba(139,92,246,.15);
+  --success:#10b981;
+  --success-glow:rgba(16,185,129,.15);
+  --danger:#ef4444;
+  --danger-glow:rgba(239,68,68,.15);
+  --warning:#f59e0b;
+  --warning-glow:rgba(245,158,11,.15);
+  --radius:12px;
+  --radius-lg:16px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+html{font-size:16px}
+
+body{
+  font-family:'Vazirmatn',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%,var(--accent-glow),transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%,rgba(59,130,246,.08),transparent);
+  background-attachment:fixed;
+}
+
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 80px}
+
+/* ===== Header ===== */
+.top-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:28px;
+  padding:16px 20px;
+  background:linear-gradient(180deg,var(--card),var(--bg-2));
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  position:relative;
+  overflow:hidden;
+}
+
+.top-bar::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:.5;
+}
+
+.brand{display:flex;align-items:center;gap:12px}
+
+.brand-icon{
+  width:44px;height:44px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#6366f1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  box-shadow:0 8px 24px -8px var(--accent);
+}
+
+.brand-icon svg{width:24px;height:24px}
+
+.brand-text h1{
+  font-size:1.0625rem;
+  font-weight:700;
+  letter-spacing:-.02em;
+  line-height:1.2;
+}
+
+.brand-text p{
+  font-size:.75rem;
+  color:var(--text-2);
+  margin-top:2px;
+}
+
+.status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:.6875rem;
+  font-weight:600;
+  padding:6px 12px;
+  border-radius:999px;
+  background:var(--success-glow);
+  color:var(--success);
+  border:1px solid rgba(16,185,129,.25);
+}
+
+.status-pill.offline{
+  background:var(--danger-glow);
+  color:var(--danger);
+  border-color:rgba(239,68,68,.25);
+}
+
+.status-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:currentColor;
+  box-shadow:0 0 8px currentColor;
+  animation:pulseDot 2s infinite;
+}
+
+@keyframes pulseDot{
+  0%,100%{opacity:1}
+  50%{opacity:.35}
+}
+
+/* ===== Stats Grid ===== */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  transition:all .2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.stat-card:hover{
+  border-color:var(--border-2);
+  transform:translateY(-2px);
+}
+
+.stat-card .stat-ico{
+  width:32px;height:32px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--accent-glow);
+  color:var(--accent);
+}
+
+.stat-card .stat-ico svg{width:16px;height:16px}
+
+.stat-card.success .stat-ico{background:var(--success-glow);color:var(--success)}
+.stat-card.warning .stat-ico{background:var(--warning-glow);color:var(--warning)}
+.stat-card.danger .stat-ico{background:var(--danger-glow);color:var(--danger)}
+
+.stat-card .stat-val{
+  font-size:1.5rem;
+  font-weight:800;
+  letter-spacing:-.03em;
+  line-height:1;
+  background:linear-gradient(135deg,var(--text),var(--text-2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.stat-card .stat-lbl{
+  font-size:.6875rem;
+  color:var(--text-2);
+  font-weight:500;
+}
+
+/* ===== Tabs ===== */
+.tabs{
+  display:flex;
+  gap:4px;
+  padding:4px;
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:20px;
+  position:sticky;
+  top:12px;
+  z-index:10;
+  backdrop-filter:blur(12px);
+  background:rgba(17,17,19,.85);
+}
+
+.tab{
+  flex:1;
+  padding:10px 14px;
+  text-align:center;
+  font-size:.8125rem;
+  font-weight:600;
+  color:var(--text-2);
+  background:transparent;
+  border:none;
+  border-radius:calc(var(--radius) - 4px);
+  cursor:pointer;
+  transition:all .2s ease;
+  font-family:inherit;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+
+.tab svg{width:15px;height:15px;opacity:.7}
+
+.tab:hover{color:var(--text);background:var(--card)}
+
+.tab.on{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 4px 14px -4px var(--accent);
+}
+
+.tab.on svg{opacity:1}
+
+.tab .tab-count{
+  font-size:.625rem;
+  background:rgba(255,255,255,.15);
+  padding:1px 6px;
+  border-radius:999px;
+  margin-right:2px;
+  font-weight:700;
+}
+
+.tab:not(.on) .tab-count{
+  background:var(--card-2);
+  color:var(--text-3);
+}
+
+/* ===== Panels ===== */
+.panel{display:none}
+.panel.on{display:block;animation:fadeUp .3s ease}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px;
+  margin-bottom:14px;
+  transition:border-color .2s;
+}
+
+.card:hover{border-color:var(--border-2)}
+
+.card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+
+.card-head .title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:.875rem;
+  font-weight:700;
+  color:var(--text);
+  letter-spacing:-.01em;
+}
+
+.card-head .title svg{
+  width:16px;height:16px;
+  color:var(--accent);
+}
+
+.card-head .count{
+  font-size:.6875rem;
+  font-weight:700;
+  color:var(--text-2);
+  background:var(--card-2);
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ===== Form ===== */
+.field{margin-bottom:14px}
+
+.field label{
+  display:block;
+  font-size:.75rem;
+  font-weight:600;
+  color:var(--text-2);
+  margin-bottom:6px;
+  letter-spacing:.01em;
+}
+
+.field .input-wrap{position:relative}
+
+.field .input-wrap svg{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:15px;
+  height:15px;
+  color:var(--text-3);
+  pointer-events:none;
+}
+
+.field input,
+.field textarea,
+.field select{
+  width:100%;
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:11px 14px;
+  font-size:.875rem;
+  color:var(--text);
+  font-family:inherit;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+
+.field .input-wrap input{padding-right:40px}
+
+.field input::placeholder,
+.field textarea::placeholder{color:var(--text-3)}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+
+.field textarea{
+  min-height:80px;
+  resize:vertical;
+  line-height:1.7;
+}
+
+.field select{
+  cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:left 14px center;
+  padding-left:36px;
+}
+
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:12px 20px;
+  border:none;
+  border-radius:var(--radius);
+  font-family:inherit;
+  font-size:.875rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s ease;
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 4px 14px -6px var(--accent);
+  letter-spacing:.01em;
+}
+
+.btn svg{width:16px;height:16px}
+
+.btn:hover{
+  background:var(--accent-2);
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px -6px var(--accent);
+}
+
+.btn:active{transform:translateY(0) scale(.98)}
+
+.btn.ghost{
+  background:var(--card-2);
+  color:var(--text);
+  border:1px solid var(--border);
+  box-shadow:none;
+}
+
+.btn.ghost:hover{background:var(--border);transform:translateY(-1px)}
+
+.btn.ok{
+  background:var(--success);
+  box-shadow:0 4px 14px -6px var(--success);
+}
+
+.btn.ok:hover{
+  background:#059669;
+  box-shadow:0 6px 18px -6px var(--success);
+}
+
+.btn.no{
+  background:var(--danger);
+  box-shadow:0 4px 14px -6px var(--danger);
+}
+
+.btn.no:hover{
+  background:#dc2626;
+  box-shadow:0 6px 18px -6px var(--danger);
+}
+
+.btn.sm{
+  width:36px;
+  height:36px;
+  padding:0;
+  border-radius:10px;
+  flex-shrink:0;
+}
+
+.btn.sm svg{width:15px;height:15px}
+
+/* ===== Item ===== */
+.item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:8px;
+  transition:all .2s;
+}
+
+.item:hover{
+  border-color:var(--border-2);
+  background:var(--card-2);
+  transform:translateX(-2px);
+}
+
+.item img{
+  width:52px;
+  height:52px;
+  border-radius:10px;
+  object-fit:cover;
+  background:var(--card);
+  border:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.item .info{flex:1;min-width:0}
+
+.item .info b{
+  display:block;
+  font-size:.8125rem;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.item .info .meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:.6875rem;
+  color:var(--text-2);
+  margin-bottom:3px;
+  flex-wrap:wrap;
+}
+
+.item .info .meta .user{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+}
+
+.item .info .meta .user svg{
+  width:11px;
+  height:11px;
+  opacity:.6;
+}
+
+.item .info .code{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.6875rem;
+  color:var(--warning);
+  background:var(--warning-glow);
+  padding:2px 8px;
+  border-radius:6px;
+  direction:ltr;
+  font-weight:500;
+  border:1px solid rgba(245,158,11,.2);
+}
+
+.item .info .code svg{
+  width:10px;
+  height:10px;
+}
+
+.item .actions{
+  display:flex;
+  gap:6px;
+  flex-shrink:0;
+  align-items:center;
+}
+
+/* ===== Badges ===== */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:.6875rem;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+
+.badge svg{width:10px;height:10px}
+
+.badge.pending{
+  background:var(--warning-glow);
+  color:var(--warning);
+}
+
+.badge.approved{
+  background:var(--success-glow);
+  color:var(--success);
+}
+
+.badge.rejected{
+  background:var(--danger-glow);
+  color:var(--danger);
+}
+
+.badge.info{
+  background:var(--accent-glow);
+  color:var(--accent);
+}
+
+/* ===== Empty State ===== */
+.empty{
+  text-align:center;
+  padding:40px 16px;
+  color:var(--text-3);
+  font-size:.8125rem;
+}
+
+.empty svg{
+  width:48px;
+  height:48px;
+  margin:0 auto 12px;
+  display:block;
+  opacity:.25;
+}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:var(--card);
+  border:1px solid var(--border-2);
+  color:var(--text);
+  padding:12px 20px;
+  border-radius:var(--radius);
+  font-size:.8125rem;
+  font-weight:600;
+  opacity:0;
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+  z-index:9999;
+  box-shadow:0 20px 50px -10px rgba(0,0,0,.6);
+  pointer-events:none;
+  max-width:90vw;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.toast svg{width:16px;height:16px;flex-shrink:0}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.toast.ok{border-color:rgba(16,185,129,.4)}
+.toast.ok svg{color:var(--success)}
+
+.toast.err{border-color:rgba(239,68,68,.4)}
+.toast.err svg{color:var(--danger)}
+
+.toast.warn{border-color:rgba(245,158,11,.4)}
+.toast.warn svg{color:var(--warning)}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+
+/* ===== Responsive ===== */
+@media(max-width:520px){
+  .wrap{padding:16px 12px 60px}
+  .top-bar{padding:14px 16px}
+  .brand-text h1{font-size:.9375rem}
+  .stats-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat-card{padding:12px 10px}
+  .stat-card .stat-val{font-size:1.25rem}
+  .card{padding:16px}
+  .row{grid-template-columns:1fr}
+  .tab{padding:9px 8px;font-size:.75rem}
+  .tab svg{display:none}
+  .tab .tab-count{font-size:.5625rem;padding:1px 5px}
+  .item img{width:44px;height:44px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🎮 پنل مدیریت GameHub</h1>
-  <p class="sub">مدیریت محصولات، تایید خریدها و ارسال اعلان</p>
 
-  <div class="tabs">
-    <button class="tab on" data-tab="purchases">خریدها</button>
-    <button class="tab" data-tab="products">محصولات</button>
-    <button class="tab" data-tab="notify">اعلان</button>
+  <!-- ===== Header ===== -->
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="6" y1="12" x2="10" y2="12"/>
+          <line x1="8" y1="10" x2="8" y2="14"/>
+          <line x1="15" y1="13" x2="15.01" y2="13"/>
+          <line x1="18" y1="11" x2="18.01" y2="11"/>
+          <rect x="2" y="6" width="20" height="12" rx="6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>پنل مدیریت</h1>
+        <p>GameHub Admin</p>
+      </div>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <span class="status-dot"></span>
+      <span id="statusText">متصل</span>
+    </div>
   </div>
 
-  <!-- ===== خریدها ===== -->
+  <!-- ===== Stats ===== -->
+  <div class="stats-grid">
+    <div class="stat-card warning">
+      <div class="stat-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+      <div class="stat-val" id="statPending">0</div>
+      <div class="stat-lbl">در انتظار</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="stat-val" id="statApproved">0</div>
+      <div class="stat-lbl">تایید شده</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <div class="stat-val" id="statProducts">0</div>
+      <div class="stat-lbl">محصولات</div>
+    </div>
+  </div>
+
+  <!-- ===== Tabs ===== -->
+  <div class="tabs">
+    <button class="tab on" data-tab="purchases">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span>خریدها</span>
+      <span class="tab-count" id="tabPendCount">0</span>
+    </button>
+    <button class="tab" data-tab="products">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+        <line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+      <span>محصولات</span>
+    </button>
+    <button class="tab" data-tab="notify">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 01-3.46 0"/>
+      </svg>
+      <span>اعلان</span>
+    </button>
+  </div>
+
+  <!-- ===== Purchases Panel ===== -->
   <div class="panel on" id="panel-purchases">
     <div class="card">
-      <h3>📋 خریدهای در انتظار</h3>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          <span>در انتظار تایید</span>
+        </div>
+        <span class="count" id="countPending">0</span>
+      </div>
       <div id="pendingList"></div>
     </div>
     <div class="card">
-      <h3>✅ خریدهای تایید شده</h3>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>تایید شده</span>
+        </div>
+        <span class="count" id="countApproved">0</span>
+      </div>
       <div id="approvedList"></div>
     </div>
   </div>
 
-  <!-- ===== محصولات ===== -->
+  <!-- ===== Products Panel ===== -->
   <div class="panel" id="panel-products">
     <div class="card">
-      <h3>➕ محصول جدید</h3>
-      <div class="field"><label>شناسه محصول (انگلیسی)</label><input id="p_pid" placeholder="gift_heart"></div>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>افزودن محصول</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>شناسه محصول (انگلیسی)</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input id="p_pid" placeholder="gift_heart">
+        </div>
+      </div>
+
       <div class="row">
-        <div class="field"><label>دستهبندی</label>
+        <div class="field">
+          <label>دسته‌بندی</label>
           <select id="p_cat">
-            <option value="gifts">گیفتها</option>
+            <option value="gifts">گیفت‌ها</option>
             <option value="stars">استارز</option>
             <option value="premium">پرمیوم</option>
             <option value="stickers">استیکر</option>
           </select>
         </div>
-        <div class="field"><label>قیمت (سکه)</label><input id="p_price" type="number" placeholder="1000"></div>
+        <div class="field">
+          <label>قیمت (سکه)</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v12"/>
+            </svg>
+            <input id="p_price" type="number" placeholder="1000">
+          </div>
+        </div>
       </div>
-      <div class="field"><label>اسم فارسی</label><input id="p_nfa" placeholder="گیفت قلب"></div>
-      <div class="field"><label>اسم انگلیسی</label><input id="p_nen" placeholder="Heart Gift"></div>
-      <div class="field"><label>توضیحات فارسی</label><textarea id="p_dfa"></textarea></div>
-      <div class="field"><label>توضیحات انگلیسی</label><textarea id="p_den"></textarea></div>
-      <div class="field"><label>لینک عکس</label><input id="p_img" placeholder="https://..."></div>
+
+      <div class="field">
+        <label>اسم فارسی</label>
+        <input id="p_nfa" placeholder="گیفت قلب">
+      </div>
+
+      <div class="field">
+        <label>اسم انگلیسی</label>
+        <input id="p_nen" placeholder="Heart Gift">
+      </div>
+
+      <div class="field">
+        <label>توضیحات فارسی</label>
+        <textarea id="p_dfa" placeholder="توضیحات محصول..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>توضیحات انگلیسی</label>
+        <textarea id="p_den" placeholder="Product description..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>لینک عکس</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <input id="p_img" placeholder="https://example.com/image.jpg">
+        </div>
+      </div>
+
       <div class="row">
-        <div class="field"><label>موجودی (خالی = نامحدود)</label><input id="p_stock" type="number" placeholder="1"></div>
-        <div class="field"><label>برچسب</label><input id="p_badge" placeholder="ویژه"></div>
+        <div class="field">
+          <label>موجودی (خالی = نامحدود)</label>
+          <input id="p_stock" type="number" placeholder="1">
+        </div>
+        <div class="field">
+          <label>برچسب (اختیاری)</label>
+          <input id="p_badge" placeholder="ویژه">
+        </div>
       </div>
-      <button class="btn" onclick="addProduct()">➕ افزودن محصول</button>
+
+      <button class="btn" onclick="addProduct()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        افزودن محصول
+      </button>
     </div>
+
     <div class="card">
-      <h3>📦 محصولات موجود</h3>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span>محصولات موجود</span>
+        </div>
+        <span class="count" id="countProducts">0</span>
+      </div>
       <div id="productsList"></div>
     </div>
   </div>
 
-  <!-- ===== اعلان ===== -->
+  <!-- ===== Notify Panel ===== -->
   <div class="panel" id="panel-notify">
     <div class="card">
-      <h3>📢 ارسال اعلان به همه</h3>
-      <div class="field"><label>عنوان</label><input id="n_title" placeholder="جشنواره ویژه!"></div>
-      <div class="field"><label>متن پیام</label><textarea id="n_body" placeholder="۵۰٪ تخفیف روی همه گیفتها..."></textarea></div>
-      <div class="field"><label>نوع</label>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          <span>ارسال اعلان به همه</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>عنوان</label>
+        <input id="n_title" placeholder="جشنواره ویژه!">
+      </div>
+
+      <div class="field">
+        <label>متن پیام</label>
+        <textarea id="n_body" placeholder="۵۰٪ تخفیف روی همه گیفت‌ها..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>نوع اعلان</label>
         <select id="n_type">
           <option value="info">اطلاعیه</option>
           <option value="success">موفقیت</option>
           <option value="warning">هشدار</option>
         </select>
       </div>
-      <button class="btn" onclick="sendNotification()">📢 ارسال</button>
+
+      <button class="btn" onclick="sendNotification()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        ارسال اعلان
+      </button>
     </div>
+
     <div class="card">
-      <h3>📨 اعلانهای قبلی</h3>
+      <div class="card-head">
+        <div class="title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 17H2a3 3 0 003 3h14a3 3 0 003-3z"/>
+            <path d="M22 12v-4a6 6 0 00-6-6H8a6 6 0 00-6 6v4"/>
+          </svg>
+          <span>اعلان‌های قبلی</span>
+        </div>
+        <span class="count" id="countNotifs">0</span>
+      </div>
       <div id="notifList"></div>
     </div>
   </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== Tab switching =====
+/* ===== SVG Icons ===== */
+const IC = {
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  check2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  x2:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>',
+  cart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>'
+};
+
+/* ===== Tab switching ===== */
 document.querySelectorAll('.tab').forEach(t=>{
   t.onclick = ()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
@@ -101,61 +973,95 @@ document.querySelectorAll('.tab').forEach(t=>{
   };
 });
 
-function toast(msg){
+/* ===== Toast ===== */
+function toast(msg, type='ok'){
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
+  const icon = type==='err'?IC.x2 : type==='warn'?IC.clock : IC.check2;
+  el.innerHTML = icon + '<span>'+msg+'</span>';
+  el.className = 'toast show ' + type;
   clearTimeout(el._t);
-  el._t = setTimeout(()=>el.classList.remove('show'), 2000);
+  el._t = setTimeout(()=>el.classList.remove('show'), 2500);
 }
 
-// ===== Load data =====
+/* ===== Connection check ===== */
+function checkConnection(){
+  const pill = document.getElementById('statusPill');
+  const text = document.getElementById('statusText');
+  if(sb){
+    pill.classList.remove('offline');
+    text.textContent = 'متصل';
+  } else {
+    pill.classList.add('offline');
+    text.textContent = 'قطع';
+  }
+}
+
+/* ===== Load Purchases ===== */
 async function loadPurchases(){
   if(!sb) return;
   const { data, error } = await sb.from('purchases').select('*').order('created_at', { ascending: false });
-  if(error){ toast('خطا در بارگذاری'); return; }
+  if(error){ console.error(error); return; }
 
   const pending = (data||[]).filter(p=>p.status==='pending');
   const approved = (data||[]).filter(p=>p.status==='approved');
+  const all = data || [];
 
+  // Update stats
+  document.getElementById('statPending').textContent = pending.length;
+  document.getElementById('statApproved').textContent = approved.length;
+  document.getElementById('countPending').textContent = pending.length;
+  document.getElementById('countApproved').textContent = approved.length;
+  document.getElementById('tabPendCount').textContent = pending.length;
+
+  // Pending list
   document.getElementById('pendingList').innerHTML = pending.length ? pending.map(p=>`
     <div class="item">
       <img src="${p.product_image||''}" onerror="this.style.display='none'">
       <div class="info">
         <b>${p.product_name}</b>
-        <span>${p.user_name} (@${p.user_username})</span>
-        <span class="code">${p.code}</span>
-        <span>${p.price} سکه</span>
+        <div class="meta">
+          <span class="user">${IC.user}${p.user_name||'کاربر'} (@${p.user_username||'anon'})</span>
+        </div>
+        <div class="meta">
+          <span class="code">${IC.tag}${p.code}</span>
+          <span>${p.price} سکه</span>
+        </div>
       </div>
       <div class="actions">
-        <button class="btn ok sm" onclick="approvePurchase('${p.id}')">✓</button>
-        <button class="btn no sm" onclick="rejectPurchase('${p.id}')">✗</button>
+        <button class="btn ok sm" onclick="approvePurchase('${p.id}')" title="تایید">${IC.check}</button>
+        <button class="btn no sm" onclick="rejectPurchase('${p.id}')" title="رد">${IC.close}</button>
       </div>
-    </div>`).join('') : '<div class="empty">خرید در انتظاری نیست</div>';
+    </div>`).join('') : `<div class="empty">${IC.check2}<div>خرید در انتظاری نیست</div></div>`;
 
+  // Approved list
   document.getElementById('approvedList').innerHTML = approved.length ? approved.map(p=>`
     <div class="item">
       <img src="${p.product_image||''}" onerror="this.style.display='none'">
       <div class="info">
         <b>${p.product_name}</b>
-        <span>${p.user_name}</span>
-        <span class="code">${p.code}</span>
+        <div class="meta">
+          <span class="user">${IC.user}${p.user_name||'کاربر'}</span>
+        </div>
+        <div class="meta">
+          <span class="code">${IC.tag}${p.code}</span>
+        </div>
       </div>
-      <span class="badge approved">تایید شد</span>
-    </div>`).join('') : '<div class="empty">هنوز چیزی تایید نشده</div>';
+      <span class="badge approved">${IC.check2}تایید شد</span>
+    </div>`).join('') : `<div class="empty">${IC.cart}<div>هنوز چیزی تایید نشده</div></div>`;
 }
 
+/* ===== Approve Purchase ===== */
 async function approvePurchase(id){
-  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  if(!sb){ toast('Supabase متصل نیست','err'); return; }
 
   const { data: p, error: e1 } = await sb.from('purchases').select('*').eq('id', id).single();
-  if(e1 || !p){ toast('❌ خرید پیدا نشد'); return; }
+  if(e1 || !p){ toast('خرید پیدا نشد','err'); return; }
 
   const { error: e2 } = await sb.from('purchases').update({
     status: 'approved',
     approved_at: new Date().toISOString()
   }).eq('id', id);
-  if(e2){ toast('❌ خطا: '+e2.message); return; }
+  if(e2){ toast('خطا: '+e2.message,'err'); return; }
 
   if(p.product_id){
     const { data: prod } = await sb.from('products').select('stock').eq('id', p.product_id).single();
@@ -165,7 +1071,7 @@ async function approvePurchase(id){
   }
 
   await sb.from('notifications').insert({
-    title_fa: 'خرید شما تایید شد ✅',
+    title_fa: 'خرید شما تایید شد',
     title_en: 'Purchase approved',
     body_fa: `محصول "${p.product_name}" با کد ${p.code} تایید شد.`,
     body_en: `Product "${p.product_name}" approved.`,
@@ -173,20 +1079,21 @@ async function approvePurchase(id){
     target: p.user_id
   });
 
-  toast('✅ تایید شد');
+  toast('تایید شد','ok');
   loadPurchases();
   loadProducts();
 }
 
+/* ===== Reject Purchase ===== */
 async function rejectPurchase(id){
-  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  if(!sb){ toast('Supabase متصل نیست','err'); return; }
   const { data: p } = await sb.from('purchases').select('*').eq('id', id).single();
   if(!p) return;
 
   await sb.from('purchases').update({ status: 'rejected' }).eq('id', id);
 
   await sb.from('notifications').insert({
-    title_fa: 'خرید شما رد شد ❌',
+    title_fa: 'خرید شما رد شد',
     title_en: 'Purchase rejected',
     body_fa: `متاسفانه خرید "${p.product_name}" رد شد.`,
     body_en: `Purchase rejected.`,
@@ -194,36 +1101,48 @@ async function rejectPurchase(id){
     target: p.user_id
   });
 
-  toast('رد شد');
+  toast('رد شد','warn');
   loadPurchases();
 }
 
+/* ===== Load Products ===== */
 async function loadProducts(){
   if(!sb) return;
   const { data, error } = await sb.from('products').select('*').order('created_at', { ascending: false });
-  if(error){ toast('خطا'); return; }
+  if(error){ toast('خطا','err'); return; }
+
+  document.getElementById('statProducts').textContent = (data||[]).length;
+  document.getElementById('countProducts').textContent = (data||[]).length;
+
   document.getElementById('productsList').innerHTML = (data||[]).length ? data.map(p=>`
     <div class="item">
       <img src="${p.image}" onerror="this.style.display='none'">
       <div class="info">
         <b>${p.name_fa}</b>
-        <span>${p.price} سکه · ${p.stock===null?'نامحدود':p.stock+' عدد'}</span>
-        <span class="code">${p.product_id}</span>
+        <div class="meta">
+          <span>${p.price} سکه</span>
+          <span>·</span>
+          <span>${p.stock===null?'نامحدود':p.stock+' عدد'}</span>
+        </div>
+        <div class="meta">
+          <span class="code">${IC.tag}${p.product_id}</span>
+        </div>
       </div>
       <div class="actions">
-        <button class="btn no sm" onclick="deleteProduct('${p.id}')">🗑</button>
+        <button class="btn no sm" onclick="deleteProduct('${p.id}')" title="حذف">${IC.trash}</button>
       </div>
-    </div>`).join('') : '<div class="empty">محصولی نیست</div>';
+    </div>`).join('') : `<div class="empty">${IC.box}<div>محصولی نیست</div></div>`;
 }
 
+/* ===== Add Product ===== */
 async function addProduct(){
   const pid = document.getElementById('p_pid').value.trim();
   const nfa = document.getElementById('p_nfa').value.trim();
   const img = document.getElementById('p_img').value.trim();
   const price = parseInt(document.getElementById('p_price').value);
 
-  if(!pid || !nfa || !img || !price){ toast('⚠️ فیلدهای ضروری رو پر کن'); return; }
-  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  if(!pid || !nfa || !img || !price){ toast('فیلدهای ضروری رو پر کن','warn'); return; }
+  if(!sb){ toast('Supabase متصل نیست','err'); return; }
 
   const stockVal = document.getElementById('p_stock').value.trim();
 
@@ -241,27 +1160,30 @@ async function addProduct(){
     active: true
   });
 
-  if(error){ toast('❌ خطا: '+error.message); return; }
+  if(error){ toast('خطا: '+error.message,'err'); return; }
 
-  toast('✅ محصول اضافه شد');
-  ['p_pid','p_nfa','p_nen','p_dfa','p_den','p_img','p_stock','p_badge','p_price'].forEach(id=>document.getElementById(id).value='');
+  toast('محصول اضافه شد','ok');
+  ['p_pid','p_nfa','p_nen','p_dfa','p_den','p_img','p_stock','p_badge','p_price']
+    .forEach(id=>document.getElementById(id).value='');
   loadProducts();
 }
 
+/* ===== Delete Product ===== */
 async function deleteProduct(id){
   if(!confirm('مطمئنی؟')) return;
-  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  if(!sb){ toast('Supabase متصل نیست','err'); return; }
   const { error } = await sb.from('products').delete().eq('id', id);
-  if(error){ toast('❌ خطا: '+error.message); return; }
-  toast('✅ حذف شد');
+  if(error){ toast('خطا: '+error.message,'err'); return; }
+  toast('حذف شد','ok');
   loadProducts();
 }
 
+/* ===== Send Notification ===== */
 async function sendNotification(){
   const title = document.getElementById('n_title').value.trim();
   const body = document.getElementById('n_body').value.trim();
-  if(!title || !body){ toast('⚠️ عنوان و متن رو پر کن'); return; }
-  if(!sb){ toast('⚠️ Supabase متصل نیست'); return; }
+  if(!title || !body){ toast('عنوان و متن رو پر کن','warn'); return; }
+  if(!sb){ toast('Supabase متصل نیست','err'); return; }
 
   const { error } = await sb.from('notifications').insert({
     title_fa: title,
@@ -272,39 +1194,46 @@ async function sendNotification(){
     target: 'all'
   });
 
-  if(error){ toast('❌ خطا: ' + error.message); return; }
-  toast('✅ اعلان ارسال شد');
+  if(error){ toast('خطا: '+error.message,'err'); return; }
+
+  toast('اعلان ارسال شد','ok');
   document.getElementById('n_title').value = '';
   document.getElementById('n_body').value = '';
   loadNotifications();
 }
 
+/* ===== Load Notifications ===== */
 async function loadNotifications(){
   if(!sb) return;
   const { data } = await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
+  document.getElementById('countNotifs').textContent = (data||[]).length;
+
   document.getElementById('notifList').innerHTML = (data||[]).length ? data.map(n=>`
     <div class="item">
       <div class="info">
         <b>${n.title_fa}</b>
-        <span>${n.body_fa}</span>
-        <span>${new Date(n.created_at).toLocaleString('fa-IR')}</span>
+        <div class="meta" style="margin-top:4px"><span>${n.body_fa}</span></div>
+        <div class="meta" style="margin-top:4px"><span style="font-size:.625rem;opacity:.6">${new Date(n.created_at).toLocaleString('fa-IR')}</span></div>
       </div>
-      <span class="badge ${n.type==='success'?'approved':n.type==='warning'?'rejected':'pending'}">${n.type}</span>
-    </div>`).join('') : '<div class="empty">اعلانی نیست</div>';
+      <span class="badge ${n.type==='success'?'approved':n.type==='warning'?'rejected':'info'}">${n.type}</span>
+    </div>`).join('') : `<div class="empty">${IC.bell}<div>اعلانی نیست</div></div>`;
 }
 
-// ===== Realtime subscriptions =====
+/* ===== Realtime ===== */
 if(sb){
-  sb.channel('admin-changes')
+  sb.channel('admin-realtime')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'purchases' }, ()=>{ loadPurchases(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, ()=>{ loadProducts(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, ()=>{ loadNotifications(); })
     .subscribe();
 }
 
-// ===== Init =====
+/* ===== Init ===== */
+checkConnection();
 loadPurchases();
 loadProducts();
 loadNotifications();
+setInterval(checkConnection, 3000);
 </script>
 </body>
 </html>
