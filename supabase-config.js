@@ -2,20 +2,20 @@
 const SUPABASE_URL = 'https://rhmtzibaqioubuncgcwg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_CEzI_2SXgxC5xKjzA86zDw_TMSe-47u';
 
-// ===== Supabase Client =====
-let supabase = null;
+// ===== Supabase Client (نام متفاوت برای جلوگیری از تضاد) =====
+let sb = null;
 function initSupabase(){
-  if(typeof window.supabase !== 'undefined' && !supabase){
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  if(typeof window.supabase !== 'undefined' && !sb){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
-  return supabase;
+  return sb;
 }
 
 // ===== API Wrapper =====
 const API = {
   async getProducts(){
-    if(!supabase) return [];
-    const { data, error } = await supabase
+    if(!sb) return [];
+    const { data, error } = await sb
       .from('products')
       .select('*')
       .eq('active', true)
@@ -25,8 +25,8 @@ const API = {
   },
 
   async getProduct(id){
-    if(!supabase) return null;
-    const { data, error } = await supabase
+    if(!sb) return null;
+    const { data, error } = await sb
       .from('products')
       .select('*')
       .eq('id', id)
@@ -36,8 +36,8 @@ const API = {
   },
 
   async createPurchase(purchase){
-    if(!supabase) return null;
-    const { data, error } = await supabase
+    if(!sb) return null;
+    const { data, error } = await sb
       .from('purchases')
       .insert(purchase)
       .select()
@@ -47,8 +47,8 @@ const API = {
   },
 
   async getMyPurchases(userId){
-    if(!supabase) return [];
-    const { data, error } = await supabase
+    if(!sb) return [];
+    const { data, error } = await sb
       .from('purchases')
       .select('*')
       .eq('user_id', userId)
@@ -58,8 +58,8 @@ const API = {
   },
 
   async getNotifications(){
-    if(!supabase) return [];
-    const { data, error } = await supabase
+    if(!sb) return [];
+    const { data, error } = await sb
       .from('notifications')
       .select('*')
       .order('created_at', { ascending: false })
@@ -69,13 +69,13 @@ const API = {
   },
 
   async markNotificationRead(id, userId){
-    if(!supabase) return;
-    const { data } = await supabase.from('notifications').select('read_by').eq('id', id).single();
+    if(!sb) return;
+    const { data } = await sb.from('notifications').select('read_by').eq('id', id).single();
     if(!data) return;
     const list = data.read_by || [];
     if(!list.includes(userId)){
       list.push(userId);
-      await supabase.from('notifications').update({ read_by: list }).eq('id', id);
+      await sb.from('notifications').update({ read_by: list }).eq('id', id);
     }
   }
 };
