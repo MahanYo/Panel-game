@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>پنل مدیریت GameHub</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+:root{
+  --bg:#0b0f1a;--card:#151b2e;--card2:#1c2340;--line:#232b47;
+  --a1:#6366f1;--a2:#a855f7;--ok:#10b981;--no:#ef4444;--gold:#fbbf24;
+  --tx:#e2e8f0;--mut:#7c88a8;--grad:linear-gradient(135deg,#6366f1,#a855f7);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:40px}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin-bottom:4px}
+.sub{font-size:12px;color:var(--mut);margin-bottom:20px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;background:var(--card);padding:6px;border-radius:14px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:13px;font-weight:700;
+  color:var(--mut);cursor:pointer;transition:.2s;background:none;border:0;font-family:inherit}
+.tab.on{background:var(--grad);color:#fff}
+.panel{display:none}
+.panel.on{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;color:var(--mut);font-weight:700;margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--card2);border:1px solid var(--line);
+  border-radius:10px;padding:11px 13px;font-size:13px;color:var(--tx);font-family:inherit;outline:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--a1)}
+.field textarea{min-height:70px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{background:var(--grad);border:0;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;
+  font-size:13px;cursor:pointer;width:100%;font-family:inherit;transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--tx)}
+.btn.ok{background:linear-gradient(135deg,#10b981,#059669)}
+.btn.no{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.btn.sm{padding:8px 12px;font-size:11px;border-radius:9px;width:auto}
+.item{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:12px;
+  margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.item img{width:50px;height:50px;border-radius:10px;object-fit:cover;background:var(--card);flex-shrink:0}
+.item .info{flex:1;min-width:0}
+.item .info b{font-size:13px;display:block;margin-bottom:2px}
+.item .info span{font-size:10px;color:var(--mut);display:block}
+.item .actions{display:flex;gap:6px;flex-shrink:0}
+.badge{padding:3px 8px;border-radius:7px;font-size:9px;font-weight:800}
+.badge.pending{background:rgba(251,191,36,.2);color:var(--gold)}
+.badge.approved{background:rgba(16,185,129,.2);color:var(--ok)}
+.badge.rejected{background:rgba(239,68,68,.2);color:var(--no)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--card2);border:1px solid var(--line);padding:12px 20px;border-radius:12px;
+  font-size:13px;font-weight:600;transition:.3s;z-index:999;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.empty{text-align:center;padding:30px;color:var(--mut);font-size:13px}
+.code{font-family:monospace;font-size:11px;color:var(--gold);direction:ltr;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎮 پنل مدیریت GameHub</h1>
+  <p class="sub">مدیریت محصولات، تایید خریدها و ارسال اعلان</p>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="purchases">خریدها</button>
+    <button class="tab" data-tab="products">محصولات</button>
+    <button class="tab" data-tab="notify">اعلان</button>
+  </div>
+
+  <!-- ===== خریدها ===== -->
+  <div class="panel on" id="panel-purchases">
+    <div class="card">
+      <h3>📋 خریدهای در انتظار</h3>
+      <div id="pendingList"></div>
+    </div>
+    <div class="card">
+      <h3>✅ خریدهای تایید شده</h3>
+      <div id="approvedList"></div>
+    </div>
+  </div>
+
+  <!-- ===== محصولات ===== -->
+  <div class="panel" id="panel-products">
+    <div class="card">
+      <h3>➕ محصول جدید</h3>
+      <div class="field"><label>شناسه محصول (انگلیسی)</label><input id="p_pid" placeholder="gift_heart"></div>
+      <div class="row">
+        <div class="field"><label>دسته‌بندی</label>
+          <select id="p_cat">
+            <option value="gifts">گیفت‌ها</option>
+            <option value="stars">استارز</option>
+            <option value="premium">پرمیوم</option>
+            <option value="stickers">استیکر</option>
+          </select>
+        </div>
+        <div class="field"><label>قیمت (سکه)</label><input id="p_price" type="number" placeholder="1000"></div>
+      </div>
+      <div class="field"><label>اسم فارسی</label><input id="p_nfa" placeholder="گیفت قلب"></div>
+      <div class="field"><label>اسم انگلیسی</label><input id="p_nen" placeholder="Heart Gift"></div>
+      <div class="field"><label>توضیحات فارسی</label><textarea id="p_dfa"></textarea></div>
+      <div class="field"><label>توضیحات انگلیسی</label><textarea id="p_den"></textarea></div>
+      <div class="field"><label>لینک عکس</label><input id="p_img" placeholder="https://..."></div>
+      <div class="row">
+        <div class="field"><label>موجودی (خالی = نامحدود)</label><input id="p_stock" type="number" placeholder="1"></div>
+        <div class="field"><label>برچسب</label><input id="p_badge" placeholder="ویژه"></div>
+      </div>
+      <button class="btn" onclick="addProduct()">➕ افزودن محصول</button>
+    </div>
+    <div class="card">
+      <h3>📦 محصولات موجود</h3>
+      <div id="productsList"></div>
+    </div>
+  </div>
+
+  <!-- ===== اعلان ===== -->
+  <div class="panel" id="panel-notify">
+    <div class="card">
+      <h3>📢 ارسال اعلان به همه</h3>
+      <div class="field"><label>عنوان</label><input id="n_title" placeholder="جشنواره ویژه!"></div>
+      <div class="field"><label>متن پیام</label><textarea id="n_body" placeholder="۵۰٪ تخفیف روی همه گیفت‌ها..."></textarea></div>
+      <div class="field"><label>نوع</label>
+        <select id="n_type">
+          <option value="info">اطلاعیه</option>
+          <option value="success">موفقیت</option>
+          <option value="warning">هشدار</option>
+        </select>
+      </div>
+      <button class="btn" onclick="sendNotification()">📢 ارسال</button>
+    </div>
+    <div class="card">
+      <h3>📨 اعلان‌های قبلی</h3>
+      <div id="notifList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Tab switching =====
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('on');
+  };
+});
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+// ===== Load data =====
+async function loadPurchases(){
+  const { data, error } = await supabase.from('purchases').select('*').order('created_at', { ascending: false });
+  if(error){ toast('خطا در بارگذاری'); return; }
+
+  const pending = (data||[]).filter(p=>p.status==='pending');
+  const approved = (data||[]).filter(p=>p.status==='approved');
+
+  document.getElementById('pendingList').innerHTML = pending.length ? pending.map(p=>`
+    <div class="item">
+      <img src="${p.product_image||''}" onerror="this.style.display='none'">
+      <div class="info">
+        <b>${p.product_name}</b>
+        <span>${p.user_name} (@${p.user_username})</span>
+        <span class="code">${p.code}</span>
+        <span>${p.price} سکه</span>
+      </div>
+      <div class="actions">
+        <button class="btn ok sm" onclick="approvePurchase('${p.id}')">✓</button>
+        <button class="btn no sm" onclick="rejectPurchase('${p.id}')">✗</button>
+      </div>
+    </div>`).join('') : '<div class="empty">خرید در انتظاری نیست</div>';
+
+  document.getElementById('approvedList').innerHTML = approved.length ? approved.map(p=>`
+    <div class="item">
+      <img src="${p.product_image||''}" onerror="this.style.display='none'">
+      <div class="info">
+        <b>${p.product_name}</b>
+        <span>${p.user_name}</span>
+        <span class="code">${p.code}</span>
+      </div>
+      <span class="badge approved">تایید شد</span>
+    </div>`).join('') : '<div class="empty">هنوز چیزی تایید نشده</div>';
+}
+
+async function approvePurchase(id){
+  const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single();
+  if(!p) return;
+
+  // به‌روزرسانی وضعیت خرید
+  const { error } = await supabase.from('purchases').update({
+    status: 'approved',
+    approved_at: new Date().toISOString()
+  }).eq('id', id);
+  if(error){ toast('خطا'); return; }
+
+  // کم کردن موجودی محصول
+  if(p.product_id){
+    const { data: prod } = await supabase.from('products').select('stock').eq('id', p.product_id).single();
+    if(prod && prod.stock !== null && prod.stock > 0){
+      await supabase.from('products').update({ stock: prod.stock - 1 }).eq('id', p.product_id);
+    }
+  }
+
+  // ارسال اعلان به کاربر
+  await supabase.from('notifications').insert({
+    title_fa: 'خرید شما تایید شد ✅',
+    title_en: 'Purchase approved',
+    body_fa: `محصول "${p.product_name}" با کد ${p.code} تایید شد.`,
+    body_en: `Product "${p.product_name}" with code ${p.code} approved.`,
+    type: 'success',
+    target: p.user_id
+  });
+
+  toast('تایید شد ✅');
+  loadPurchases();
+}
+
+async function rejectPurchase(id){
+  const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single();
+  if(!p) return;
+
+  await supabase.from('purchases').update({ status: 'rejected' }).eq('id', id);
+
+  await supabase.from('notifications').insert({
+    title_fa: 'خرید شما رد شد ❌',
+    title_en: 'Purchase rejected',
+    body_fa: `متاسفانه خرید "${p.product_name}" رد شد.`,
+    body_en: `Purchase "${p.product_name}" was rejected.`,
+    type: 'warning',
+    target: p.user_id
+  });
+
+  toast('رد شد');
+  loadPurchases();
+}
+
+// ===== Products =====
+async function loadProducts(){
+  const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+  if(error){ toast('خطا'); return; }
+  document.getElementById('productsList').innerHTML = (data||[]).length ? data.map(p=>`
+    <div class="item">
+      <img src="${p.image}" onerror="this.style.display='none'">
+      <div class="info">
+        <b>${p.name_fa}</b>
+        <span>${p.price} سکه · ${p.stock===null?'نامحدود':p.stock+' عدد'}</span>
+        <span class="code">${p.product_id}</span>
+      </div>
+      <div class="actions">
+        <button class="btn no sm" onclick="deleteProduct('${p.id}')">🗑</button>
+      </div>
+    </div>`).join('') : '<div class="empty">محصولی نیست</div>';
+}
+
+async function addProduct(){
+  const pid = document.getElementById('p_pid').value.trim();
+  const nfa = document.getElementById('p_nfa').value.trim();
+  const img = document.getElementById('p_img').value.trim();
+  const price = parseInt(document.getElementById('p_price').value);
+
+  if(!pid || !nfa || !img || !price){ toast('فیلدهای ضروری رو پر کن'); return; }
+
+  const stockVal = document.getElementById('p_stock').value.trim();
+
+  const { error } = await supabase.from('products').insert({
+    product_id: pid,
+    category: document.getElementById('p_cat').value,
+    name_fa: nfa,
+    name_en: document.getElementById('p_nen').value.trim() || nfa,
+    desc_fa: document.getElementById('p_dfa').value.trim(),
+    desc_en: document.getElementById('p_den').value.trim(),
+    image: img,
+    price: price,
+    stock: stockVal === '' ? null : parseInt(stockVal),
+    badge_fa: document.getElementById('p_badge').value.trim() || null,
+    active: true
+  });
+
+  if(error){ toast('خطا: '+error.message); return; }
+
+  toast('محصول اضافه شد ✅');
+  ['p_pid','p_nfa','p_nen','p_dfa','p_den','p_img','p_stock','p_badge','p_price'].forEach(id=>document.getElementById(id).value='');
+  loadProducts();
+}
+
+async function deleteProduct(id){
+  if(!confirm('مطمئنی؟')) return;
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if(error){ toast('خطا'); return; }
+  toast('حذف شد');
+  loadProducts();
+}
+
+// ===== Notifications =====
+async function sendNotification(){
+  const title = document.getElementById('n_title').value.trim();
+  const body = document.getElementById('n_body').value.trim();
+  if(!title || !body){ toast('عنوان و متن رو پر کن'); return; }
+
+  const { error } = await supabase.from('notifications').insert({
+    title_fa: title,
+    title_en: title,
+    body_fa: body,
+    body_en: body,
+    type: document.getElementById('n_type').value,
+    target: 'all'
+  });
+
+  if(error){ toast('خطا: '+error.message); return; }
+  toast('اعلان ارسال شد 📢');
+  document.getElementById('n_title').value = '';
+  document.getElementById('n_body').value = '';
+  loadNotifications();
+}
+
+async function loadNotifications(){
+  const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
+  document.getElementById('notifList').innerHTML = (data||[]).length ? data.map(n=>`
+    <div class="item">
+      <div class="info">
+        <b>${n.title_fa}</b>
+        <span>${n.body_fa}</span>
+        <span>${new Date(n.created_at).toLocaleString('fa-IR')}</span>
+      </div>
+      <span class="badge ${n.type==='success'?'approved':n.type==='warning'?'rejected':'pending'}">${n.type}</span>
+    </div>`).join('') : '<div class="empty">اعلانی نیست</div>';
+}
+
+// ===== Realtime subscriptions =====
+supabase.channel('admin-changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'purchases' }, ()=>{ loadPurchases(); })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, ()=>{ loadProducts(); })
+  .subscribe();
+
+// ===== Init =====
+loadPurchases();
+loadProducts();
+loadNotifications();
+</script>
+</body>
+  </html>
